@@ -52,7 +52,7 @@ export default function MindMapPage() {
             <div style={{ padding: '10px', minWidth: '150px' }}>
               <div style={{ fontWeight: '600', marginBottom: '5px' }}>{note.title}</div>
               <div style={{ fontSize: '11px', color: '#666' }}>
-                {note.content.substring(0, 100)}...
+                {note.content.length > 100 ? note.content.substring(0, 100) + '...' : note.content}
               </div>
             </div>
           ),

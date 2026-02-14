@@ -19,7 +19,7 @@ A powerful note-taking application with Obsidian-like markdown support, Notion-l
 ### Backend
 - **Node.js** with **Express**: RESTful API server
 - **TypeScript**: Type-safe development
-- **SQLite** with **better-sqlite3**: Lightweight database
+- **SQLite** with **sqlite3**: Lightweight database
 - **JWT**: Secure authentication
 - **bcryptjs**: Password hashing
 

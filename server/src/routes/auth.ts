@@ -6,7 +6,11 @@ import { dbRun, dbGet } from '../models/database';
 import { User } from '../types';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required but not set');
+}
 
 // Register new user
 router.post('/register', async (req: Request, res: Response) => {
@@ -23,8 +27,8 @@ router.post('/register', async (req: Request, res: Response) => {
       return res.status(409).json({ error: 'User with this email or username already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password with 12 rounds for better security
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create user
     const userId = uuidv4();

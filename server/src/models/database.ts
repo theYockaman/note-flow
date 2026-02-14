@@ -19,12 +19,12 @@ const dbRun = promisify(db.run.bind(db));
 const dbGet = promisify(db.get.bind(db));
 const dbAll = promisify(db.all.bind(db));
 
-// Enable foreign keys
-db.run('PRAGMA foreign_keys = ON');
-
 // Initialize database schema
 export async function initDatabase() {
   try {
+    // Enable foreign keys FIRST before creating any tables
+    await dbRun('PRAGMA foreign_keys = ON');
+
     // Users table
     await dbRun(`
       CREATE TABLE IF NOT EXISTS users (
