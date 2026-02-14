@@ -1,16 +1,16 @@
 import { Router, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import db from '../models/database';
+import { dbRun, dbGet, dbAll } from '../models/database';
 import { authMiddleware } from '../middleware/auth';
 import { AuthRequest, Note } from '../types';
 
 const router = Router();
 
 // Get all notes for the authenticated user
-router.get('/', authMiddleware, (req: AuthRequest, res: Response) => {
+router.get('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const notes = db.prepare('SELECT * FROM notes WHERE user_id = ? ORDER BY updated_at DESC').all(userId) as Note[];
+    const notes = (await dbAll('SELECT * FROM notes WHERE user_id = ? ORDER BY updated_at DESC', [userId])) as Note[];
     
     // Parse tags from JSON string
     const parsedNotes = notes.map(note => ({
@@ -26,12 +26,12 @@ router.get('/', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Get a single note by ID
-router.get('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+router.get('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
     
-    const note = db.prepare('SELECT * FROM notes WHERE id = ? AND user_id = ?').get(id, userId) as Note | undefined;
+    const note = (await dbGet('SELECT * FROM notes WHERE id = ? AND user_id = ?', [id, userId])) as Note | undefined;
 
     if (!note) {
       return res.status(404).json({ error: 'Note not found' });
@@ -51,7 +51,7 @@ router.get('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Create a new note
-router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
+router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
     const { title, content, tags = [], position_x, position_y, parent_id } = req.body;
@@ -63,12 +63,12 @@ router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
     const noteId = uuidv4();
     const tagsJson = JSON.stringify(tags);
     
-    db.prepare(`
+    await dbRun(`
       INSERT INTO notes (id, user_id, title, content, tags, position_x, position_y, parent_id)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(noteId, userId, title, content, tagsJson, position_x, position_y, parent_id);
+    `, [noteId, userId, title, content, tagsJson, position_x, position_y, parent_id]);
 
-    const note = db.prepare('SELECT * FROM notes WHERE id = ?').get(noteId) as Note;
+    const note = (await dbGet('SELECT * FROM notes WHERE id = ?', [noteId])) as Note;
     const parsedNote = {
       ...note,
       tags: JSON.parse(note.tags as any || '[]')
@@ -82,14 +82,14 @@ router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Update a note
-router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
     const { title, content, tags, position_x, position_y, parent_id } = req.body;
 
     // Verify note belongs to user
-    const existingNote = db.prepare('SELECT * FROM notes WHERE id = ? AND user_id = ?').get(id, userId);
+    const existingNote = await dbGet('SELECT * FROM notes WHERE id = ? AND user_id = ?', [id, userId]);
     if (!existingNote) {
       return res.status(404).json({ error: 'Note not found' });
     }
@@ -129,9 +129,9 @@ router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
     updates.push("updated_at = datetime('now')");
     values.push(id, userId);
 
-    db.prepare(`UPDATE notes SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
+    await dbRun(`UPDATE notes SET ${updates.join(', ')} WHERE id = ? AND user_id = ?`, values);
 
-    const note = db.prepare('SELECT * FROM notes WHERE id = ?').get(id) as Note;
+    const note = (await dbGet('SELECT * FROM notes WHERE id = ?', [id])) as Note;
     const parsedNote = {
       ...note,
       tags: JSON.parse(note.tags as any || '[]')
@@ -145,14 +145,14 @@ router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Delete a note
-router.delete('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user!.id;
 
-    const result = db.prepare('DELETE FROM notes WHERE id = ? AND user_id = ?').run(id, userId);
+    const result = await dbRun('DELETE FROM notes WHERE id = ? AND user_id = ?', [id, userId]);
 
-    if (result.changes === 0) {
+    if ((result as any).changes === 0) {
       return res.status(404).json({ error: 'Note not found' });
     }
 

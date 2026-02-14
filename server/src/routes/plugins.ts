@@ -1,15 +1,15 @@
 import { Router, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import db from '../models/database';
+import { dbRun, dbGet, dbAll } from '../models/database';
 import { authMiddleware } from '../middleware/auth';
 import { AuthRequest } from '../types';
 
 const router = Router();
 
 // Get all plugins
-router.get('/', (req, res: Response) => {
+router.get('/', async (req, res: Response) => {
   try {
-    const plugins = db.prepare('SELECT id, name, version, enabled, config FROM plugins').all();
+    const plugins = await dbAll('SELECT id, name, version, enabled, config FROM plugins');
     res.json(plugins);
   } catch (error) {
     console.error('Error fetching plugins:', error);
@@ -18,10 +18,10 @@ router.get('/', (req, res: Response) => {
 });
 
 // Get a single plugin
-router.get('/:id', (req, res: Response) => {
+router.get('/:id', async (req, res: Response) => {
   try {
     const { id } = req.params;
-    const plugin = db.prepare('SELECT * FROM plugins WHERE id = ?').get(id);
+    const plugin = await dbGet('SELECT * FROM plugins WHERE id = ?', [id]);
 
     if (!plugin) {
       return res.status(404).json({ error: 'Plugin not found' });
@@ -35,7 +35,7 @@ router.get('/:id', (req, res: Response) => {
 });
 
 // Install a new plugin (admin only - simplified for now)
-router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
+router.post('/', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { name, version, code, config = {} } = req.body;
 
@@ -44,18 +44,18 @@ router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
     }
 
     // Check if plugin already exists
-    const existingPlugin = db.prepare('SELECT * FROM plugins WHERE name = ?').get(name);
+    const existingPlugin = await dbGet('SELECT * FROM plugins WHERE name = ?', [name]);
     if (existingPlugin) {
       return res.status(409).json({ error: 'Plugin with this name already exists' });
     }
 
     const pluginId = uuidv4();
-    db.prepare(`
+    await dbRun(`
       INSERT INTO plugins (id, name, version, code, config)
       VALUES (?, ?, ?, ?, ?)
-    `).run(pluginId, name, version, code, JSON.stringify(config));
+    `, [pluginId, name, version, code, JSON.stringify(config)]);
 
-    const plugin = db.prepare('SELECT * FROM plugins WHERE id = ?').get(pluginId);
+    const plugin = await dbGet('SELECT * FROM plugins WHERE id = ?', [pluginId]);
     res.status(201).json(plugin);
   } catch (error) {
     console.error('Error creating plugin:', error);
@@ -64,12 +64,12 @@ router.post('/', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Update plugin configuration
-router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+router.put('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { enabled, config } = req.body;
 
-    const existingPlugin = db.prepare('SELECT * FROM plugins WHERE id = ?').get(id);
+    const existingPlugin = await dbGet('SELECT * FROM plugins WHERE id = ?', [id]);
     if (!existingPlugin) {
       return res.status(404).json({ error: 'Plugin not found' });
     }
@@ -91,9 +91,9 @@ router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
     }
 
     values.push(id);
-    db.prepare(`UPDATE plugins SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    await dbRun(`UPDATE plugins SET ${updates.join(', ')} WHERE id = ?`, values);
 
-    const plugin = db.prepare('SELECT * FROM plugins WHERE id = ?').get(id);
+    const plugin = await dbGet('SELECT * FROM plugins WHERE id = ?', [id]);
     res.json(plugin);
   } catch (error) {
     console.error('Error updating plugin:', error);
@@ -102,12 +102,12 @@ router.put('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Delete a plugin
-router.delete('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
+router.delete('/:id', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const result = db.prepare('DELETE FROM plugins WHERE id = ?').run(id);
+    const result = await dbRun('DELETE FROM plugins WHERE id = ?', [id]);
 
-    if (result.changes === 0) {
+    if ((result as any).changes === 0) {
       return res.status(404).json({ error: 'Plugin not found' });
     }
 
@@ -119,12 +119,12 @@ router.delete('/:id', authMiddleware, (req: AuthRequest, res: Response) => {
 });
 
 // Execute a plugin (simplified example)
-router.post('/:id/execute', authMiddleware, (req: AuthRequest, res: Response) => {
+router.post('/:id/execute', authMiddleware, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { input } = req.body;
 
-    const plugin: any = db.prepare('SELECT * FROM plugins WHERE id = ? AND enabled = 1').get(id);
+    const plugin: any = await dbGet('SELECT * FROM plugins WHERE id = ? AND enabled = 1', [id]);
 
     if (!plugin) {
       return res.status(404).json({ error: 'Plugin not found or disabled' });

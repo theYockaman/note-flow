@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
-import db from '../models/database';
+import { dbRun, dbGet } from '../models/database';
 import { User } from '../types';
 
 const router = Router();
@@ -18,7 +18,7 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     // Check if user already exists
-    const existingUser = db.prepare('SELECT * FROM users WHERE email = ? OR username = ?').get(email, username);
+    const existingUser = await dbGet('SELECT * FROM users WHERE email = ? OR username = ?', [email, username]);
     if (existingUser) {
       return res.status(409).json({ error: 'User with this email or username already exists' });
     }
@@ -28,12 +28,12 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // Create user
     const userId = uuidv4();
-    db.prepare('INSERT INTO users (id, email, username, password) VALUES (?, ?, ?, ?)').run(
+    await dbRun('INSERT INTO users (id, email, username, password) VALUES (?, ?, ?, ?)', [
       userId,
       email,
       username,
-      hashedPassword
-    );
+      hashedPassword,
+    ]);
 
     // Generate JWT token
     const token = jwt.sign({ id: userId, email, username }, JWT_SECRET, { expiresIn: '7d' });
@@ -59,7 +59,7 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     // Find user
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email) as User | undefined;
+    const user = (await dbGet('SELECT * FROM users WHERE email = ?', [email])) as User | undefined;
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
