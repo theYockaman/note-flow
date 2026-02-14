@@ -368,14 +368,39 @@ Notes can be linked together to create a knowledge graph:
 
 ⚠️ **Important Security Notes:**
 
-1. **JWT Secret**: Change the default JWT_SECRET in production
+1. **JWT Secret**: The application requires a JWT_SECRET environment variable to be set. Generate a secure secret key using:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
 2. **Plugin Execution**: The current plugin system uses `new Function()` which can be unsafe. For production, implement proper sandboxing using:
    - `isolated-vm`
    - `vm2`
    - Web Workers with restricted permissions
+
 3. **Input Validation**: Always validate and sanitize user inputs
+
 4. **HTTPS**: Use HTTPS in production
-5. **Rate Limiting**: Implement rate limiting for API endpoints
+
+5. **Rate Limiting**: The current implementation lacks rate limiting on API endpoints. For production, add rate limiting middleware using packages like:
+   - `express-rate-limit`
+   - `rate-limiter-flexible`
+   
+   Example implementation:
+   ```javascript
+   const rateLimit = require('express-rate-limit');
+   
+   const limiter = rateLimit({
+     windowMs: 15 * 60 * 1000, // 15 minutes
+     max: 100 // limit each IP to 100 requests per windowMs
+   });
+   
+   app.use('/api/', limiter);
+   ```
+
+6. **Password Security**: Passwords are hashed using bcryptjs with 12 rounds, which provides good security. Increase rounds as computing power improves.
+
+7. **Database Security**: Uses parameterized queries to prevent SQL injection attacks.
 
 ## Contributing
 
