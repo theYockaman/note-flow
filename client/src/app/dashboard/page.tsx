@@ -107,92 +107,141 @@ export default function DashboardPage() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
+    <div style={{ display: 'flex', height: '100vh', background: '#f8f9fa' }}>
       {/* Sidebar */}
       {sidebarOpen && (
         <div style={{
-          width: '280px',
-          background: '#2c2c2c',
+          width: '300px',
+          background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
           color: 'white',
           display: 'flex',
           flexDirection: 'column',
+          boxShadow: '4px 0 16px rgba(0,0,0,0.1)',
         }}>
-          <div style={{ padding: '20px', borderBottom: '1px solid #444' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '10px' }}>Note-Flow</h2>
+          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                background: 'rgba(255,255,255,0.2)',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '20px',
+              }}>
+                📝
+              </div>
+              <h2 style={{ fontSize: '22px', fontWeight: '700' }}>Note-Flow</h2>
+            </div>
             <button
               onClick={handleCreateNote}
-              className="btn btn-primary"
-              style={{ width: '100%', marginBottom: '10px' }}
+              className="btn"
+              style={{ 
+                width: '100%', 
+                marginBottom: '10px',
+                background: 'rgba(255,255,255,0.9)',
+                color: '#667eea',
+                fontWeight: '700',
+              }}
             >
               + New Note
             </button>
             <button
               onClick={() => router.push('/mindmap')}
-              className="btn btn-secondary"
-              style={{ width: '100%' }}
+              className="btn"
+              style={{ 
+                width: '100%',
+                marginBottom: '10px',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: '2px solid rgba(255,255,255,0.3)',
+              }}
             >
               🧠 Mind Map
             </button>
+            <button
+              onClick={() => router.push('/plugins')}
+              className="btn"
+              style={{ 
+                width: '100%',
+                background: 'rgba(255,255,255,0.2)',
+                color: 'white',
+                border: '2px solid rgba(255,255,255,0.3)',
+              }}
+            >
+              🔌 Plugins
+            </button>
           </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-            <h3 style={{ fontSize: '14px', color: '#aaa', marginBottom: '10px', padding: '0 10px' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+            <h3 style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', marginBottom: '12px', padding: '0 12px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '1px' }}>
               Your Notes ({notes.length})
             </h3>
             {notes.map((note) => (
               <div
                 key={note.id}
                 onClick={() => setSelectedNote(note)}
+                className="slide-in"
                 style={{
-                  padding: '12px',
-                  marginBottom: '5px',
-                  borderRadius: '6px',
-                  background: selectedNote?.id === note.id ? '#444' : 'transparent',
+                  padding: '14px',
+                  marginBottom: '8px',
+                  borderRadius: '10px',
+                  background: selectedNote?.id === note.id ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)',
                   cursor: 'pointer',
-                  transition: 'background 0.2s',
+                  transition: 'all 0.2s',
+                  border: '1px solid ' + (selectedNote?.id === note.id ? 'rgba(255,255,255,0.3)' : 'transparent'),
                 }}
                 onMouseEnter={(e) => {
                   if (selectedNote?.id !== note.id) {
-                    e.currentTarget.style.background = '#333';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (selectedNote?.id !== note.id) {
-                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
                   }
                 }}
               >
-                <div style={{ fontWeight: '500', marginBottom: '4px' }}>{note.title}</div>
-                <div style={{ fontSize: '12px', color: '#999' }}>
+                <div style={{ fontWeight: '600', marginBottom: '6px', fontSize: '15px' }}>{note.title}</div>
+                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)' }}>
                   {new Date(note.updated_at).toLocaleDateString()}
                 </div>
               </div>
             ))}
           </div>
 
-          <div style={{ padding: '20px', borderTop: '1px solid #444' }}>
+          <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
             <button
               onClick={handleLogout}
-              className="btn btn-secondary"
-              style={{ width: '100%' }}
+              className="btn"
+              style={{ 
+                width: '100%',
+                background: 'rgba(235,51,73,0.8)',
+                color: 'white',
+              }}
             >
               Logout
             </button>
           </div>
         </div>
       )}
+          </div>
+        </div>
+      )}
 
       {/* Main content */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white' }}>
         {selectedNote ? (
           <>
             <div style={{
-              padding: '20px',
-              borderBottom: '1px solid #ddd',
+              padding: '24px 32px',
+              borderBottom: '1px solid #e0e0e0',
               background: 'white',
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
+              gap: '12px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             }}>
               <input
                 type="text"
@@ -201,30 +250,34 @@ export default function DashboardPage() {
                 onBlur={handleSaveNote}
                 style={{
                   flex: 1,
-                  fontSize: '24px',
-                  fontWeight: '600',
+                  fontSize: '28px',
+                  fontWeight: '700',
                   border: 'none',
                   outline: 'none',
+                  background: 'transparent',
                 }}
+                placeholder="Untitled Note"
               />
-              <button onClick={handleSaveNote} className="btn btn-primary">
-                Save
+              <button onClick={handleSaveNote} className="btn btn-success">
+                💾 Save
               </button>
               <button
                 onClick={() => handleDeleteNote(selectedNote.id)}
-                className="btn btn-secondary"
+                className="btn btn-danger"
               >
-                Delete
+                🗑️ Delete
               </button>
             </div>
 
-            <div style={{ flex: 1, overflow: 'auto', padding: '20px' }}>
-              <MDEditor
-                value={editingContent}
-                onChange={(val) => setEditingContent(val || '')}
-                height="100%"
-                preview="live"
-              />
+            <div style={{ flex: 1, overflow: 'auto', padding: '24px 32px', background: '#fafafa' }}>
+              <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <MDEditor
+                  value={editingContent}
+                  onChange={(val) => setEditingContent(val || '')}
+                  height="calc(100vh - 200px)"
+                  preview="live"
+                />
+              </div>
             </div>
           </>
         ) : (
@@ -235,9 +288,20 @@ export default function DashboardPage() {
             justifyContent: 'center',
             alignItems: 'center',
             color: '#999',
+            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
           }}>
-            <h2 style={{ fontSize: '32px', marginBottom: '10px' }}>Welcome to Note-Flow</h2>
-            <p style={{ fontSize: '18px' }}>Select a note or create a new one to get started</p>
+            <div style={{ textAlign: 'center', maxWidth: '500px', padding: '40px' }}>
+              <div style={{ fontSize: '80px', marginBottom: '24px' }}>📝</div>
+              <h2 style={{ fontSize: '36px', marginBottom: '16px', fontWeight: '700', color: '#333' }}>
+                Welcome to Note-Flow
+              </h2>
+              <p style={{ fontSize: '18px', color: '#666', marginBottom: '32px' }}>
+                Select a note from the sidebar or create a new one to get started
+              </p>
+              <button onClick={handleCreateNote} className="btn btn-primary" style={{ fontSize: '16px', padding: '14px 28px' }}>
+                + Create Your First Note
+              </button>
+            </div>
           </div>
         )}
       </div>
