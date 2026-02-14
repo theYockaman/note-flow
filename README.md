@@ -24,7 +24,7 @@ A powerful note-taking application with Obsidian-like markdown support, Notion-l
 - **bcryptjs**: Password hashing
 
 ### Frontend
-- **Next.js 14**: React framework with App Router
+- **Next.js 15**: React framework with App Router
 - **React**: UI library
 - **TypeScript**: Type-safe development
 - **ReactFlow**: Mind mapping visualization
