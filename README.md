@@ -72,7 +72,7 @@ For the client, create `client/.env.local`:
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
 ```
 
-4. Start the development servers:
+1. Start the development servers:
 ```bash
 npm run dev
 ```

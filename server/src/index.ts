@@ -1,8 +1,11 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import dotenv from 'dotenv';
 import { initDatabase } from './models/database';
 
 // Import routes
@@ -10,9 +13,6 @@ import authRoutes from './routes/auth';
 import notesRoutes from './routes/notes';
 import linksRoutes from './routes/links';
 import pluginsRoutes from './routes/plugins';
-
-// Load environment variables
-dotenv.config();
 
 // Initialize database
 initDatabase();
