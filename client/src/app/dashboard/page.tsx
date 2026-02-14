@@ -226,9 +226,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-          </div>
-        </div>
-      )}
 
       {/* Main content */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white' }}>
